@@ -2,7 +2,7 @@
 Classification of Alzheimer's Disease through Graph Attention Learning on Word Co-occurrence Networks
 
 We construct an architecture based off [GATv2Conv](https://github.com/tech-srl/how_attentive_are_gats) developed by _Brody et al. 2022_. We modify the convolutional layers to pay attention to edge weights in our co-occurrence networks.
-![GAT architecture](/images/GATarchitecture.png)
+![GAT architecture](images/GATarchitecture.png)
 
 ### 0. Install packages
 `conda env create -f environment.yml`
