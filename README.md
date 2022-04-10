@@ -10,11 +10,12 @@ We construct an architecture based off [GATv2Conv](https://github.com/tech-srl/h
 ### 1. Download training data
 Download from ADReSS 2020 test set from http://www.homepages.ed.ac.uk/sluzfil/ADReSS/ and the DementiaBank from https://dementia.talkbank.org/
 Place in data folder:
-`mkdir data
+```
+mkdir data
 mkdir results
 mv DementiaBank data
-mv ADReSS-IS2020-data data`
-
+mv ADReSS-IS2020-data data
+```
 ### 2. Build word vectors
 Run `word_vectors.py` on the Dementia Bank transcripts
 ` python word_vectors.py`
