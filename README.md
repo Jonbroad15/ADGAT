@@ -18,7 +18,9 @@ mv ADReSS-IS2020-data data
 ```
 ### 2. Build word vectors
 Run `word_vectors.py` on the Dementia Bank transcripts
-` python word_vectors.py`
+```
+ python word_vectors.py
+```
 
 ### 3. Train and edit hyperparameters
 Use `train_KFold()` in `main.py` to experiment with desired hyperparameters on train/validation splits
