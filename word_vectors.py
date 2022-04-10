@@ -1,4 +1,4 @@
-import millington.chat as pla
+import graph_utils.chat as pla
 import os
 import fasttext
 
@@ -20,18 +20,29 @@ def file_to_string(path, remove_stopwords=False, remove_nonalpha=True):
 
 
 def main():
-
-    s = file_to_string('ADReSS-IS2020-data/train/transcription/cc/*')
-    s += '\n' + file_to_string('ADReSS-IS2020-data/train/transcription/cd/*')
-    s += s
-    s += s
+    s = ''
+    print('Unreadable chat files:')
+    for group in ['Controls', 'Dementia']:
+        for f in os.listdir(f'data/DementiaBank/{group}/'):
+            try:
+                s += file_to_string(os.path.join(f'data/DementiaBank/{group}', f))
+            except StopIteration:
+                print(f)
+            s += '\n'
+    for group in ['cc', 'cd']:
+        path = f'data/ADReSS-IS2020-data/train/transcription/{group}/'
+        for f in os.listdir(path):
+            try:
+                s += file_to_string(os.path.join(path, f))
+            except StopIteration:
+                print(f)
+            s += '\n'
     s += s
     s = s.encode(encoding='UTF-8')
-    with open('word_vectors/transcript_text.txt', 'wb') as f:
+    with open('results/transcript_text.txt', 'wb') as f:
         f.write(s)
-    model = fasttext.train_unsupervised('word_vectors/transcript_text.txt', minn=2, maxn=6, dim=300)
-    model.save_model('word_vectors/word_vectors.bin')
-    breakpoint()
+    model = fasttext.train_unsupervised('results/transcript_text.txt', minn=2, maxn=6, dim=300)
+    model.save_model('results/DementiaBank.bin')
 
 
 if __name__ == '__main__':
