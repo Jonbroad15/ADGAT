@@ -5,9 +5,9 @@ import numpy as np
 import scipy
 import pdb
 from nltk.corpus import stopwords
-import network_measures as nm
+import graph_utils.network_measures as nm
 import operator
-import chat as pla
+import graph_utils.chat as pla
 import random
 from itertools import islice
 import collections
@@ -234,8 +234,8 @@ def load_all_files(folder, occurrence_window=2, remove_nonalpha = True, pos_tags
             G = file_to_sentence_graphs(os.path.join(folder, f), occurrence_window=occurrence_window, remove_nonalpha=remove_nonalpha, pos_tags=pos_tags, shuffle=shuffle)
         except StopIteration:
             continue
-        if not nx.is_connected(G):
-            print("Disconnected graph")
+        # if not nx.is_connected(G):
+            # print("Disconnected graph")
         graphs.append(G)
 
     return graphs

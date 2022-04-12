@@ -37,8 +37,9 @@ meta_data_test = read_meta_data('data/ADReSS-IS2020-data/test/meta_data_test.txt
 vectors_path = 'results/data/DementiaBank.bin'
 
 onehots = {}
-with open('results/onehots.p', 'rb') as f:
-    onehots = pickle.load(f)
+# Onehot cache
+# with open('results/onehots.p', 'rb') as f:
+    # onehots = pickle.load(f)
 
 def encode_onehot(w):
     if w in onehots.keys():
@@ -85,6 +86,7 @@ class GAT(nn.Module):
                                                     negative_slope = negative_slope,
                                                     share_weights=share_weights)\
                                         for i in range(len(layers)-1)])
+            self.linears = nn.ModuleList([nn.Linear(self.GATs[-1].fc_dst.out_features, linears[0])])
         else:
             self.GATs = nn.ModuleList([GATv2Conv(layers[i], layers[i+1],
                                                     num_heads,
@@ -94,8 +96,8 @@ class GAT(nn.Module):
                                                     negative_slope = negative_slope,
                                                     share_weights=share_weights)\
                                         for i in range(len(layers)-1)])
-        self.linears = nn.ModuleList([nn.Linear(self.GATs[-1].fc_dst.out_features, linears[0])])
-        for i in range(1, len(linears)-1):
+            self.linears = nn.ModuleList([nn.Linear(layers[-1], linears[0])])
+        for i in range(len(linears)-1):
             self.linears.append(nn.Linear(linears[i], linears[i+1]))
 
     def forward(self, g, in_feat):
@@ -286,7 +288,7 @@ def train_Kfold():
                 negative_slope=0.2,
                 share_weights=True,
                 residual=True).to(device)
-    lr = 0.005
+    lr = 0.01
     epochs = 20
     torch.manual_seed(42)
     dataset = Dataset(device, feat='onehot')
@@ -311,21 +313,21 @@ def train_Kfold():
 def train(K, dataset):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = GAT([861] +[16 for _ in range(K)],
-                [16, 1],
+                [1],
                 num_heads=3,
                 feat_drop=0.6,
                 attn_drop=0.6,
                 negative_slope=0.2,
                 share_weights=True,
-                concat=True,
+                concat=False,
                 residual=True).to(device)
-    lr = 0.001
+    lr = 0.01
     epochs = 100
     torch.manual_seed(42)
     n = len(dataset)
     train_idx, val_idx = torch.arange(int(n*0.9)), torch.arange(int(n*0.9), n)
     train_loader, valid_loader = get_loaders(dataset, train_idx, val_idx)
-    learn(dataset, train_loader, valid_loader, model,lr, epochs, 0, early_stop=70)
+    learn(dataset, train_loader, valid_loader, model,lr, epochs, 0, early_stop=20)
 
     with open('results/onehots.p', 'wb') as f:
         pickle.dump(onehots, f)
@@ -337,7 +339,7 @@ def main():
     train_dataset = Dataset(device, feat='onehot')
     test_dataset = Dataset(device, test=True, feat='onehot')
     results = {}
-    model = train(3, train_dataset)
+    model = train(1, train_dataset)
     return
     # Evaluate
     results[0] = evaluate(test_dataset, model)
