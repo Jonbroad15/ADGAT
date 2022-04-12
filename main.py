@@ -12,32 +12,32 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data.sampler import SubsetRandomSampler
-from millington.tools import *
+from graph_utils.tools import *
 from sklearn.model_selection import KFold
 
 
 script_dir = os.path.realpath(os.path.dirname(__file__))
 
 # Edit these to point to the training set transcipt locations
-control_transcripts_path = "ADReSS-IS2020-data/train/transcription/cc/"
-ad_transcripts_path = "ADReSS-IS2020-data/train/transcription/cd/"
+control_transcripts_path = "data/ADReSS-IS2020-data/train/transcription/cc/"
+ad_transcripts_path = "data/ADReSS-IS2020-data/train/transcription/cd/"
 
 # Edit this to set the co-occurrence window
 o = 2
 
 # Edit these to point to the labels
-meta_data = read_meta_data("ADReSS-IS2020-data/train/cc_meta_data.txt", dict())
-meta_data = read_meta_data("ADReSS-IS2020-data/train/cd_meta_data.txt", meta_data)
+meta_data = read_meta_data("data/ADReSS-IS2020-data/train/cc_meta_data.txt", dict())
+meta_data = read_meta_data("data/ADReSS-IS2020-data/train/cd_meta_data.txt", meta_data)
 
 # Edit this to point to the test set
-test_set_path = "ADReSS-IS2020-data/test/transcription/"
-meta_data_test = read_meta_data('ADReSS-IS2020-data/test/meta_data_test.txt', dict())
+test_set_path = "data/ADReSS-IS2020-data/test/transcription/"
+meta_data_test = read_meta_data('data/ADReSS-IS2020-data/test/meta_data_test.txt', dict())
 
 # Word embeddings
-vectors_path = 'word_vectors/DementiaBank_double.bin'
+vectors_path = 'results/data/DementiaBank.bin'
 
 onehots = {}
-with open('models/onehots.p', 'rb') as f:
+with open('results/onehots.p', 'rb') as f:
     onehots = pickle.load(f)
 
 def encode_onehot(w):
@@ -236,7 +236,7 @@ def learn(dataset, train_dataloader, valid_dataloader, model, lr,
         if epoch > early_stop and valid_acc < prev_accuracy -0.05:
             print("Model stopped")
             break
-        torch.save(model, f'models/GAT.{fold}.pt')
+        torch.save(model, f'results/GAT.{fold}.pt')
         prev_accuracy = valid_acc
 
     return prev_accuracy
@@ -304,14 +304,14 @@ def train_Kfold():
     best_fold = int(np.argmax(accuracy))
     print("Average validation Accuracy %.3f +/- %.3f" % (np.mean(accuracy), np.std(accuracy)))
     print("Best validation Accuracy %.3f" % accuracy[best_fold])
-    with open('models/onehots.p', 'wb') as f:
+    with open('results/onehots.p', 'wb') as f:
         pickle.dump(onehots, f)
 
 
 def train(K, dataset):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = GAT([861, 16],
-                [16, 16, 8, 1],
+    model = GAT([861] +[16 for _ in range(K)],
+                [16, 1],
                 num_heads=3,
                 feat_drop=0.6,
                 attn_drop=0.6,
@@ -327,7 +327,7 @@ def train(K, dataset):
     train_loader, valid_loader = get_loaders(dataset, train_idx, val_idx)
     learn(dataset, train_loader, valid_loader, model,lr, epochs, 0, early_stop=70)
 
-    with open('models/onehots.p', 'wb') as f:
+    with open('results/onehots.p', 'wb') as f:
         pickle.dump(onehots, f)
 
     return model
@@ -337,7 +337,8 @@ def main():
     train_dataset = Dataset(device, feat='onehot')
     test_dataset = Dataset(device, test=True, feat='onehot')
     results = {}
-    model = train([16, 16], train_dataset)
+    model = train(3, train_dataset)
+    return
     # Evaluate
     results[0] = evaluate(test_dataset, model)
     print(results)
