@@ -1,4 +1,9 @@
 
+"""
+Code modified from model developed by Brody et. al 2022
+https://github.com/tech-srl/how_attentive_are_gats
+"""
+
 """Torch modules for graph attention networks v2 (GATv2)."""
 import torch as th
 from torch import nn
